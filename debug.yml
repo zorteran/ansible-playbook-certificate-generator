@@ -1,0 +1,21 @@
+---
+- name: Debug inventory
+  hosts: localhost
+  vars:
+      my_group: elastic
+  tasks:
+    - name: debug groups
+      debug:
+        msg: "{{ groups }}"
+    - name: debug vip_hosts group
+      debug:
+        msg: "{{ groups['vip_hosts'] }}"
+    - name: debug host es-2
+      debug:
+        msg: "{{ hostvars['es-02'] }}"
+    - name: debug each host of my_group
+      debug:
+        msg: "{{ hostvars[item] }}"
+      with_items: "{{ groups[my_group] }}"
+...
+

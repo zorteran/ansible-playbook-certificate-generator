@@ -1,0 +1,43 @@
+---
+- name: Create certs for the group
+  hosts: localhost
+  vars:
+      my_group: elastic
+      certs_dir: "{{ playbook_dir }}/my_certs"
+  tasks:
+    - name: create dirs
+      file:
+        path: "{{ certs_dir }}/{{ hostvars[item].inventory_hostname_short }}"
+        state: directory
+      with_items: "{{ groups[my_group] }}"
+    - name: create host certificate key
+      openssl_privatekey:
+        path: "{{ certs_dir }}/{{ hostvars[item].inventory_hostname_short }}/cert.key"
+      with_items: "{{ groups[my_group] }}"
+    - name: create the CSR
+      openssl_csr:
+        path: "{{ certs_dir }}/{{ hostvars[item].inventory_hostname_short }}/cert.csr"
+        privatekey_path: "{{ certs_dir }}/{{ hostvars[item].inventory_hostname_short }}/cert.key"
+        common_name: "{{ hostvars[item].inventory_hostname }}"
+        basic_constraints: ["CA:FALSE"]
+        subject_alt_name: "{{ hostvars[item].san | default(omit) }}"
+      with_items: "{{ groups[my_group] }}"
+    - name: sign the CSR with CA
+      openssl_certificate:
+        path: "{{ certs_dir }}/{{ hostvars[item].inventory_hostname_short }}/cert.crt"
+        csr_path: "{{ certs_dir }}/{{ hostvars[item].inventory_hostname_short }}/cert.csr"
+        provider: ownca
+        ownca_path: "{{ certs_dir }}/ca/ca.crt"
+        ownca_privatekey_path: "{{ certs_dir }}/ca/ca.key"
+      with_items: "{{ groups[my_group] }}"
+    - name: create PKCS file
+      openssl_pkcs12:
+        action: export
+        path: "{{ certs_dir }}/{{ hostvars[item].inventory_hostname_short }}/cert.p12"
+        friendly_name: "{{ hostvars[item].inventory_hostname_short }}"
+        privatekey_path: "{{ certs_dir }}/{{ hostvars[item].inventory_hostname_short }}/cert.key"
+        certificate_path: "{{ certs_dir }}/{{ hostvars[item].inventory_hostname_short }}/cert.crt"
+        other_certificates: "{{ certs_dir }}/ca/ca.crt"
+        state: present
+      with_items: "{{ groups[my_group] }}"
+...

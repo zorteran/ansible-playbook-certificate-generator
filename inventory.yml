@@ -1,0 +1,29 @@
+all:
+  children:
+    elastic:
+      hosts:
+        es-01:
+          ansible_host: 10.0.0.10
+          some_var: "hey"
+        es-02:
+          ansible_host: 10.0.0.11
+          some_other_var: "hey you"
+        es-03:
+          ansible_host: 10.0.0.12
+          san:
+            - IP:10.0.0.12
+            - IP:11.11.11.11
+            - DNS:wiaderko.pl
+            - DNS:ansible-fanboy.pl
+        es-04:
+          ansible_host: 10.0.0.13
+        es-05:
+          ansible_host: 10.0.0.14
+    vip_hosts:
+      hosts:
+        host-01:
+          ansible_host: 10.0.0.20
+          important_var: "oh no!"
+        host-02:
+          ansible_host: 10.0.0.21
+          important_var: "anyway..."
